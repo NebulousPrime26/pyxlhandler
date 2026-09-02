@@ -1,7 +1,13 @@
 from __future__ import annotations
 
+import logging
 import os.path
 from typing import overload
+
+from ..parser import ExcelParser
+from ._utils import Properties
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class Book:
@@ -9,10 +15,17 @@ class Book:
         self._sheets: dict[str, Sheet] = {}
         self._sheet_order: list[str] = []
 
+        self._properties: Properties = Properties()
+
         raise NotImplementedError()
 
     @classmethod
-    def from_file(cls, filename: str) -> Book:
+    def from_file(cls, file_path: str) -> Book:
+        with ExcelParser(file_path) as parser:
+            book = cls()
+            book._sheet_order = parser.sheets
+
+        book._properties = Properties.from_file(file_path)
         raise NotImplementedError()
 
     def add_sheet(self, name: str, index: int = -1) -> Sheet:
@@ -65,17 +78,25 @@ class Book:
     def get_sheet_names(self) -> list[str]:
         return self._sheet_order
 
-    def save(self, filename: str, *, overwrite: bool = False) -> None:
-        if not overwrite and os.path.exists(filename):
+    def save(self, file_path: str, *, overwrite: bool = False) -> None:
+        if not overwrite and os.path.exists(file_path):
             raise FileExistsError(
-                f"File '{filename}' already exists. Use overwrite=True to overwrite."
+                f"File '{file_path}' already exists. Use overwrite=True to overwrite."
             )
+
+        # TODO: Implement saving logic here
+
+        self._properties = Properties.from_file(file_path)
 
         raise NotImplementedError()
 
     @property
     def sheets(self) -> dict[str, Sheet]:
         return self._sheets.copy()
+
+    @property
+    def properties(self) -> Properties:
+        return self._properties
 
 
 class Sheet:
