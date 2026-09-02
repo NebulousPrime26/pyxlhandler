@@ -1,0 +1,14 @@
+{
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.codeActions.triggerOnFocusChange": true,
+    "editor.codeActionsOnSave": {"source.organizeImports": "explicit", "source.fixAll": "explicit"},
+
+    // Ruff
+    "ruff.configuration": "${workspaceFolder}/.venv/bin/python",
+    "ruff.configurationPreference": "filesystemFirst",
+
+    // Python
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    "python.terminal.activateEnvironment": true
+}
