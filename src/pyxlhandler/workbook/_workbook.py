@@ -7,6 +7,7 @@ from typing import overload
 
 from ..exceptions import InvalidSheetError, SheetExistsError, SheetNotFoundError
 from ..parser import ExcelReader, ExcelWriter
+from ..sheet._sheet import Sheet
 from ..utils import invalid_sheet_name
 from ._properties import Properties
 
@@ -127,24 +128,3 @@ class Book:
     @property
     def properties(self) -> Properties:
         return self._properties
-
-
-class Sheet:
-    def __init__(self, name: str):
-        if type(name) is not str:
-            raise TypeError(f"Sheet name must be a string, got {type(name).__name__} instead.")
-        if invalid_sheet_name(name):
-            raise InvalidSheetError.from_name(name)
-
-        self._name = name
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @name.setter
-    def name(self, value: str) -> None:
-        if invalid_sheet_name(value):
-            raise InvalidSheetError.from_name(value)
-
-        self._name = value
