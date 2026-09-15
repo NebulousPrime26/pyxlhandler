@@ -9,6 +9,11 @@ dependencies = []
 [project.scripts]
 pyxlhandler = "pyxlhandler:main"
 
+[project.optional-dependencies]
+defused = [
+    "defusedxml>=0.7.1",
+]
+
 [build-system]
 requires = ["uv_build>=0.12.7,<0.13.0"]
 build-backend = "uv_build"
@@ -17,3 +22,6 @@ build-backend = "uv_build"
 ref = [
     "openpyxl>=3.1.5",
 ]
+
+[tool.ruff]
+line-length = 150

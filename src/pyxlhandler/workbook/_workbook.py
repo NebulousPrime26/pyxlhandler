@@ -1,87 +1,142 @@
 from __future__ import annotations
 
+import logging
 import os.path
+from collections.abc import Iterable
 from typing import overload
+
+from ..exceptions import InvalidSheetError, SheetExistsError, SheetNotFoundError
+from ..parser import ExcelReader, ExcelWriter
+from ._properties import Properties
+from ._utils import invalid_sheet_name
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class Book:
     def __init__(self):
-        self._sheets: dict[str, Sheet] = {}
-        self._sheet_order: list[str] = []
-
-        raise NotImplementedError()
+        self._sheets: list[Sheet] = []
+        self._properties: Properties = Properties()
 
     @classmethod
-    def from_file(cls, filename: str) -> Book:
-        raise NotImplementedError()
+    def from_file(cls, file_path: str) -> Book:
+        """Create a `Book` instance from a XLSX file.
 
-    def add_sheet(self, name: str, index: int = -1) -> Sheet:
-        sheet = Sheet(name)
-        self._sheets[name] = sheet
+        Args:
+            file_path (str): Path to the XLSX file.
+
+        Returns:
+            Book: A `Book` instance representing the workbook.
+        """
+        with ExcelReader(file_path) as reader:
+            book = cls()
+            book._sheets = [Sheet(name) for name in reader.sheets]
+
+        book._properties = Properties.from_file(file_path)
+
+        return book
+
+    def add_sheet(self, sheet: Sheet, index: int = -1, overwrite: bool = False) -> None:
+        """Add a sheet to the book.
+
+        Args:
+            sheet (Sheet): The sheet to add.
+            index (int, optional): The index at which to add the sheet. Defaults to -1.
+            overwrite (bool, optional): Whether to overwrite the sheet if it already exists. Defaults to False.
+
+        Raises:
+            InvalidSheetError: If the sheet name is invalid.
+            SheetExistsError: If the sheet name already exists and `overwrite=False`.
+        """
+        sheet_name: str = sheet.name
+
+        if invalid_sheet_name(sheet_name):
+            raise InvalidSheetError.from_name(sheet_name)
+        if not overwrite and sheet_name in [s.name for s in self._sheets]:
+            raise SheetExistsError(f"Sheet '{sheet_name}' already exists.")
 
         if index == -1:
-            self._sheet_order.append(name)
+            self._sheets.append(sheet)
         else:
-            self._sheet_order.insert(index, name)
-
-        return sheet
+            self._sheets.insert(index, sheet)
 
     def remove_sheet(self, name: str) -> None:
-        self._sheets.pop(name)
+        """Remove sheet from book if it exists.
 
-        if name in self._sheet_order:
-            self._sheet_order.remove(name)
+        Nothing happens in case the sheet didn't exist.
 
-        raise NotImplementedError()
+        Args:
+            name (str): Sheet name to remove.
+        """
+        sheet: Sheet | None = next((s for s in self._sheets if s.name == name), None)
+
+        if sheet is None:
+            _LOGGER.warning(f"Sheet '{name}' does not exist. No action taken.")
+            return
+
+        self._sheets.remove(sheet)
 
     def rename_sheet(self, old_name: str, new_name: str) -> None:
-        if old_name not in self._sheets:
-            raise ValueError(f"Sheet '{old_name}' does not exist.")
+        """Rename an existing` sheet.
+
+        Args:
+            old_name (str): The current name of the sheet to rename.
+            new_name (str): The new name for the sheet.
+
+        Raises:
+            SheetNotFoundError: If the sheet with `old_name` does not exist.
+            SheetExistsError: If the sheet with `new_name` already exists.
+        """
+        sheet: Sheet | None = next((s for s in self._sheets if s.name == old_name), None)
+
+        if sheet is None:
+            raise SheetNotFoundError(f"Sheet '{old_name}' does not exist.")
         if new_name in self._sheets:
-            raise ValueError(f"Sheet '{new_name}' already exists.")
+            raise SheetExistsError(f"Sheet '{new_name}' already exists.")
 
-        sheet = self._sheets.pop(old_name)
+        index: int = self._sheets.index(sheet)
         sheet.name = new_name
-
-        self._sheets[new_name] = sheet
-        self._sheet_order[self._sheet_order.index(old_name)] = new_name
-
-        raise NotImplementedError()
+        self._sheets[index] = sheet
 
     @overload
     def get_sheet(self, name: str) -> Sheet: ...
     @overload
-    def get_sheet(self, *name: str) -> list[Sheet]: ...
-    def get_sheet(self, *name: str):
+    def get_sheet(self, name: Iterable[str]) -> list[Sheet]: ...
+    def get_sheet(self, name: str | Iterable[str]):
         raise NotImplementedError()
 
     @overload
     def get_sheet_by_index(self, index: int) -> Sheet: ...
     @overload
-    def get_sheet_by_index(self, *index: int) -> list[Sheet]: ...
-    def get_sheet_by_index(self, *index: int):
+    def get_sheet_by_index(self, index: Iterable[int]) -> list[Sheet]: ...
+    def get_sheet_by_index(self, index: int | Iterable[int]):
         raise NotImplementedError()
 
     def get_sheet_names(self) -> list[str]:
-        return self._sheet_order
+        return [s.name for s in self._sheets]
 
-    def save(self, filename: str, *, overwrite: bool = False) -> None:
-        if not overwrite and os.path.exists(filename):
-            raise FileExistsError(
-                f"File '{filename}' already exists. Use overwrite=True to overwrite."
-            )
+    def save(self, file_path: str, *, overwrite: bool = False) -> None:
+        if not overwrite and os.path.exists(file_path):
+            raise FileExistsError(f"File '{file_path}' already exists. Use overwrite=True to overwrite.")
 
-        raise NotImplementedError()
+        with ExcelWriter(file_path) as writer:
+            writer.write(self.get_sheet_names())
+
+        self._properties = Properties.from_file(file_path)
 
     @property
-    def sheets(self) -> dict[str, Sheet]:
-        return self._sheets.copy()
+    def properties(self) -> Properties:
+        return self._properties
 
 
 class Sheet:
     def __init__(self, name: str):
+        if type(name) is not str:
+            raise TypeError(f"Sheet name must be a string, got {type(name).__name__} instead.")
+        if invalid_sheet_name(name):
+            raise InvalidSheetError.from_name(name)
+
         self._name = name
-        raise NotImplementedError()
 
     @property
     def name(self) -> str:
@@ -89,7 +144,7 @@ class Sheet:
 
     @name.setter
     def name(self, value: str) -> None:
-        if type(value) is str:
-            self._name = value
+        if invalid_sheet_name(value):
+            raise InvalidSheetError.from_name(value)
 
-        raise TypeError("Sheet name must be a string.")
+        self._name = value
