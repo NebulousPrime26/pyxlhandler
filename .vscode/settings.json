@@ -1,4 +1,9 @@
 {
+    // General
+    "files.exclude": {"**/__pycache__": true, "**/.venv": true},
+
+
+    // Editor
     "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.formatOnSave": true,
     "editor.formatOnPaste": true,
@@ -12,5 +17,5 @@
 
     // Python
     "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
-    "python.terminal.activateEnvironment": true
+    "python.terminal.activateEnvironment": true,
 }
