@@ -13,6 +13,7 @@ class Properties(NamedTuple):
 
     created: dt.datetime | None = None
     last_modified: dt.datetime | None = None
+    last_accessed: dt.datetime | None = None
 
     @classmethod
     def from_file(cls, file_path: str) -> Properties:
@@ -27,4 +28,5 @@ class Properties(NamedTuple):
         return cls(
             created=dt.datetime.fromtimestamp(os.path.getctime(file_path), tz=dt.UTC),
             last_modified=dt.datetime.fromtimestamp(os.path.getmtime(file_path), tz=dt.UTC),
+            last_accessed=dt.datetime.fromtimestamp(os.path.getatime(file_path), tz=dt.UTC),
         )
