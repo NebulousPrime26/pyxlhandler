@@ -11,6 +11,7 @@ class Properties(NamedTuple):
     Do not instantiate this class directly. Use the `from_file` class method to create an instance from a file.
     """
 
+    created: dt.datetime | None = None
     last_modified: dt.datetime | None = None
 
     @classmethod
@@ -24,7 +25,6 @@ class Properties(NamedTuple):
             Properties: The loaded properties.
         """
         return cls(
-            last_modified=dt.datetime.fromtimestamp(
-                os.path.getmtime(file_path), tz=dt.UTC
-            )
+            created=dt.datetime.fromtimestamp(os.path.getctime(file_path), tz=dt.UTC),
+            last_modified=dt.datetime.fromtimestamp(os.path.getmtime(file_path), tz=dt.UTC),
         )
