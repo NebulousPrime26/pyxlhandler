@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from ..exceptions import InvalidSheetError
+from ..typing import CellValue
 from ..utils import invalid_sheet_name
 
 
@@ -12,6 +13,14 @@ class Sheet:
             raise InvalidSheetError.from_name(name)
 
         self._name: str = name
+
+    def set_value(self, cell: str, value: list[CellValue] | CellValue) -> None:
+        if type(cell) is not str:
+            raise TypeError(f"Cell must be a string, got {type(cell).__name__} instead.")
+        if type(value) is list and len(value) > 1 and ":" not in cell:
+            raise ValueError("Cannot set multiple values to a single cell without a range.")
+
+        raise NotImplementedError("Setting cell values is not implemented yet.")
 
     @property
     def name(self) -> str:
