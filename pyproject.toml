@@ -22,3 +22,6 @@ build-backend = "uv_build"
 ref = [
     "openpyxl>=3.1.5",
 ]
+
+[tool.ruff]
+line-length = 150
