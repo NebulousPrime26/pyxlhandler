@@ -1,19 +1,19 @@
 from __future__ import annotations
 
 
-def is_sheet_name_valid(name: str) -> bool:
-    """Validate if sheet can be used by Excel.
+def invalid_sheet_name(name: str) -> bool:
+    """Check if the sheet name is invalid for use in Excel.
 
     Args:
         name (str): Sheet name to validate.
 
     Returns:
-        bool: True if the sheet name is valid, False otherwise.
+        bool: True if the sheet name is invalid, False otherwise.
     """
     if type(name) is not str:
-        return False
+        return True
     if not name:
-        return False
+        return True
     if len(name) > 31:
-        return False
-    return not any(c in name for c in r"[]:*?/\\")
+        return True
+    return any(c in name for c in r"[]:*?/\\")

@@ -32,17 +32,13 @@ class ExcelReader:
         self._excel_file.close()
 
     @functools.cached_property
-    def sheets(self):
+    def sheets(self) -> list[str]:
         self._load_workbook()
 
         namespace = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
         ns = f"{{{namespace}}}"
 
-        return [
-            s.get("name")
-            for s in self._workbook_xml.iterfind(f".//{ns}sheet")
-            if s.get("name")
-        ]
+        return [s.get("name", "") for s in self._workbook_xml.iterfind(f".//{ns}sheet") if s.get("name")]
 
     def _load_workbook(self) -> None:
         """Load the workbook xml file from the Excel zip archive."""
