@@ -5,8 +5,9 @@ import os.path
 from collections.abc import Iterable
 from typing import overload
 
-from ..parser import ExcelReader
+from ..parser import ExcelReader, ExcelWriter
 from ._properties import Properties
+from ._utils import is_sheet_name_valid
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,6 +49,9 @@ class Book:
         raise NotImplementedError()
 
     def rename_sheet(self, old_name: str, new_name: str) -> None:
+        if not is_sheet_name_valid(new_name):
+            raise ValueError(f"Invalid sheet name '{new_name}'")
+
         if old_name not in self._sheets:
             raise ValueError(f"Sheet '{old_name}' does not exist.")
         if new_name in self._sheets:
@@ -78,15 +82,12 @@ class Book:
 
     def save(self, file_path: str, *, overwrite: bool = False) -> None:
         if not overwrite and os.path.exists(file_path):
-            raise FileExistsError(
-                f"File '{file_path}' already exists. Use overwrite=True to overwrite."
-            )
+            raise FileExistsError(f"File '{file_path}' already exists. Use overwrite=True to overwrite.")
 
-        # TODO: Implement saving logic here
+        with ExcelWriter(file_path) as writer:
+            writer.write(self.get_sheet_names())
 
         self._properties = Properties.from_file(file_path)
-
-        raise NotImplementedError()
 
     @property
     def properties(self) -> Properties:
@@ -96,7 +97,6 @@ class Book:
 class Sheet:
     def __init__(self, name: str):
         self._name = name
-        raise NotImplementedError()
 
     @property
     def name(self) -> str:
@@ -104,7 +104,7 @@ class Sheet:
 
     @name.setter
     def name(self, value: str) -> None:
-        if type(value) is str:
-            self._name = value
+        if not is_sheet_name_valid(value):
+            raise ValueError(f"Invalid sheet name '{value}'")
 
-        raise TypeError("Sheet name must be a string.")
+        self._name = value
