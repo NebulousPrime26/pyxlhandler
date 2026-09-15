@@ -19,6 +19,7 @@ class Properties(NamedTuple):
     last_accessed: dt.datetime | None = None
 
     size: int | None = None
+    vba_enabled: bool | None = None
 
     @classmethod
     def from_file(cls, file_path: str) -> Properties:
@@ -36,6 +37,7 @@ class Properties(NamedTuple):
             last_modified=dt.datetime.fromtimestamp(os.path.getmtime(file_path), tz=dt.UTC),
             last_accessed=dt.datetime.fromtimestamp(os.path.getatime(file_path), tz=dt.UTC),
             size=os.path.getsize(file_path),
+            vba_enabled=file_path.lower().endswith(".xlsm"),
         )
 
     def get_size(self, unit: Literal["B", "KB", "MB", "GB"]) -> float:
