@@ -7,8 +7,8 @@ from typing import overload
 
 from ..exceptions import InvalidSheetError, SheetExistsError, SheetNotFoundError
 from ..parser import ExcelReader, ExcelWriter
+from ..utils import invalid_sheet_name
 from ._properties import Properties
-from ._utils import invalid_sheet_name
 
 _LOGGER = logging.getLogger(__name__)
 
