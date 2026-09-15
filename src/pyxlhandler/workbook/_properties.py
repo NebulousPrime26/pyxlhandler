@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 import os
-from collections import NamedTuple
+from typing import NamedTuple
 
 
 class Properties(NamedTuple):

@@ -1,5 +1,5 @@
 from __future__ import annotations
 
-from ._excel import ExcelParser
+from ._reader import ExcelReader
 
-__all__ = ["ExcelParser"]
+__all__: list[str] = ["ExcelReader"]

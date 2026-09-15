@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import logging
 import os.path
+from collections.abc import Iterable
 from typing import overload
 
-from ..parser import ExcelParser
-from ._utils import Properties
+from ..parser import ExcelReader
+from ._properties import Properties
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -17,16 +18,15 @@ class Book:
 
         self._properties: Properties = Properties()
 
-        raise NotImplementedError()
-
     @classmethod
     def from_file(cls, file_path: str) -> Book:
-        with ExcelParser(file_path) as parser:
+        with ExcelReader(file_path) as reader:
             book = cls()
-            book._sheet_order = parser.sheets
+            book._sheet_order = reader.sheets
 
         book._properties = Properties.from_file(file_path)
-        raise NotImplementedError()
+
+        return book
 
     def add_sheet(self, name: str, index: int = -1) -> Sheet:
         sheet = Sheet(name)
@@ -59,20 +59,18 @@ class Book:
         self._sheets[new_name] = sheet
         self._sheet_order[self._sheet_order.index(old_name)] = new_name
 
-        raise NotImplementedError()
-
     @overload
     def get_sheet(self, name: str) -> Sheet: ...
     @overload
-    def get_sheet(self, *name: str) -> list[Sheet]: ...
-    def get_sheet(self, *name: str):
+    def get_sheet(self, name: Iterable[str]) -> list[Sheet]: ...
+    def get_sheet(self, name: str | Iterable[str]):
         raise NotImplementedError()
 
     @overload
     def get_sheet_by_index(self, index: int) -> Sheet: ...
     @overload
-    def get_sheet_by_index(self, *index: int) -> list[Sheet]: ...
-    def get_sheet_by_index(self, *index: int):
+    def get_sheet_by_index(self, index: Iterable[int]) -> list[Sheet]: ...
+    def get_sheet_by_index(self, index: int | Iterable[int]):
         raise NotImplementedError()
 
     def get_sheet_names(self) -> list[str]:
@@ -89,10 +87,6 @@ class Book:
         self._properties = Properties.from_file(file_path)
 
         raise NotImplementedError()
-
-    @property
-    def sheets(self) -> dict[str, Sheet]:
-        return self._sheets.copy()
 
     @property
     def properties(self) -> Properties:

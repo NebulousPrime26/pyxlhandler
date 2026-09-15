@@ -13,16 +13,17 @@ else:
 
 if TYPE_CHECKING:
     import zipfile
+    from xml.etree.ElementTree import Element
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class ExcelParser:
+class ExcelReader:
     def __init__(self, file_path: str):
         self._excel_file: zipfile.ZipFile = open_excel(file_path)
 
-        self._sheet_xml: dict[str, ET.Element] = {}
-        self._workbook_xml: ET.Element
+        self._sheet_xml: dict[str, Element] = {}
+        self._workbook_xml: Element
 
     def __enter__(self):
         return self
