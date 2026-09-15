@@ -11,7 +11,7 @@ class Sheet:
         if invalid_sheet_name(name):
             raise InvalidSheetError.from_name(name)
 
-        self._name = name
+        self._name: str = name
 
     @property
     def name(self) -> str:
